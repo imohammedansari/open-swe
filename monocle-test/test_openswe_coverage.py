@@ -7,17 +7,22 @@ import uuid
 from pathlib import Path
 
 import pytest
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:  # python-dotenv is optional -- only used to auto-load .env for the live test
+    load_dotenv = None
 from monocle_test_tools import TraceAssertion
 from monocle_test_tools.span_loader import JSONSpanLoader
 
-ROOT = Path(__file__).resolve().parent
+HERE = Path(__file__).resolve().parent          # this monocle-test/ folder
+TRACES = HERE / "traces"                         # recorded trace fixtures live here
+REPO_ROOT = HERE.parent                          # the open-swe repo root
 
 # monocle_test_tools has no built-in .env loading -- it only reads OKAHU_API_KEY from the
 # real process environment. Load the repo's .env here (if present) so plain
-# `pytest test_openswe_coverage.py` works without manually sourcing first.
-_ENV = ROOT / ".env"
-if _ENV.exists():
+# `pytest monocle-test/` works from anywhere without manually sourcing first.
+_ENV = REPO_ROOT / ".env"
+if load_dotenv and _ENV.exists():
     load_dotenv(_ENV)
 
 # ---------------------------------------------------------------------------
@@ -47,7 +52,7 @@ if _ENV.exists():
 
 # Q1: "Add a greet(name) helper to the utils module that returns 'Hello, {name}!',
 #      and export it."
-TRACE_GREET = ".monocle/monocle_trace_open-swe_dc9f4aede4b1728dcb54a218558ddd1e_2026-07-07_16.16.01.json"
+TRACE_GREET = str(TRACES / "monocle_trace_open-swe_dc9f4aede4b1728dcb54a218558ddd1e_2026-07-07_16.16.01.json")
 
 
 def test_openswe_greet_helper(monocle_trace_asserter: TraceAssertion):
@@ -76,7 +81,7 @@ def test_openswe_greet_helper(monocle_trace_asserter: TraceAssertion):
 
 # Q2: "Add unit tests for the string-formatting utilities, covering empty and
 #      unicode inputs, and make sure they pass."
-TRACE_TESTS = ".monocle/monocle_trace_open-swe_5049bc96cce27f243c2b364301fdfb64_2026-07-07_16.19.37.json"
+TRACE_TESTS = str(TRACES / "monocle_trace_open-swe_5049bc96cce27f243c2b364301fdfb64_2026-07-07_16.19.37.json")
 
 
 def test_openswe_string_format_tests(monocle_trace_asserter: TraceAssertion):
@@ -104,7 +109,7 @@ def test_openswe_string_format_tests(monocle_trace_asserter: TraceAssertion):
 
 # Q3: "Extract the duplicated retry logic in the two client modules into a shared
 #      decorator; keep behavior identical."
-TRACE_RETRY = ".monocle/monocle_trace_open-swe_9639d88ff465a19e08e57b83067dd162_2026-07-07_16.23.02.json"
+TRACE_RETRY = str(TRACES / "monocle_trace_open-swe_9639d88ff465a19e08e57b83067dd162_2026-07-07_16.23.02.json")
 
 
 def test_openswe_retry_decorator(monocle_trace_asserter: TraceAssertion):
@@ -132,7 +137,7 @@ def test_openswe_retry_decorator(monocle_trace_asserter: TraceAssertion):
 
 # Q4: "Where is the sandbox created per thread, and how is one-sandbox-per-thread
 #      enforced?"
-TRACE_SANDBOX = ".monocle/monocle_trace_open-swe_b746798a92bb7a7c445339c69d5855c5_2026-07-07_16.24.22.json"
+TRACE_SANDBOX = str(TRACES / "monocle_trace_open-swe_b746798a92bb7a7c445339c69d5855c5_2026-07-07_16.24.22.json")
 
 
 def test_openswe_sandbox_per_thread(monocle_trace_asserter: TraceAssertion):
@@ -157,7 +162,7 @@ def test_openswe_sandbox_per_thread(monocle_trace_asserter: TraceAssertion):
 
 
 # Q5: "What does the reviewer graph do and where is it defined?"
-TRACE_REVIEWER = ".monocle/monocle_trace_open-swe_fd6005532e38b500614a7322987bf256_2026-07-07_17.10.45.json"
+TRACE_REVIEWER = str(TRACES / "monocle_trace_open-swe_fd6005532e38b500614a7322987bf256_2026-07-07_17.10.45.json")
 
 
 def test_openswe_reviewer_graph(monocle_trace_asserter: TraceAssertion):
